@@ -54,8 +54,16 @@ exports.setup.testRun = function (test, name) {
       var ret = !!JSHINT(source, options, globals);
       var errors = JSHINT.errors;
 
+
       if (errors.length === 0 && definedErrors.length === 0) {
         return;
+      }
+
+      // so we can fetch lines by line number for logging.
+      // add a line at the start in order to make everything 1-indexed.
+      if(typeof(source) === "string") {
+        source = source.split("\n");
+        source.unshift("");
       }
 
       // filter all thrown errors
@@ -129,29 +137,33 @@ exports.setup.testRun = function (test, name) {
           return def.message === er.message;
         });
       });
-
+      var passed = (undefinedErrors.length === 0 &&
+                    unthrownErrors.length === 0 &&
+                    wrongLineNumbers.length === 0 &&
+                    duplicateErrors.length === 0);
       test.ok(
-        undefinedErrors.length === 0 &&
-          unthrownErrors.length === 0 &&
-          wrongLineNumbers.length === 0 &&
-          duplicateErrors.length === 0,
-
-        (name === null ? "" : "\n  TestRun: [bold]{" + name + "}") +
+        passed,
+        (name === undefined ? "" : "\n  TestRun: [bold]{" + name + "}") +
         unthrownErrors.map(function (el, idx) {
           return (idx === 0 ? "\n  [yellow]{Errors defined, but not thrown by JSHINT}\n" : "") +
-            " [bold]{Line " + el.line + ", Char " + el.character + "} " + el.message;
+            "  [bold]{Line " + el.line + "} " + el.message + "\n" +
+            "  Source line: \"" + source[el.line] + "\"";
         }).join("\n") +
         undefinedErrors.map(function (el, idx) {
           return (idx === 0 ? "\n  [yellow]{Errors thrown by JSHINT, but not defined in test run}\n" : "") +
-            "  [bold]{Line " + el.line + ", Char " + el.character + "} " + el.reason;
+            "  [bold]{Line " + el.line + ", Char " + el.character + ", Code " + el.code + "} " + el.reason + "\n" +
+            "  Source line: \"" + source[el.line] + "\"";
         }).join("\n") +
         wrongLineNumbers.map(function (el, idx) {
           return (idx === 0 ? "\n  [yellow]{Errors with wrong line number}\n" : "") +
-            "  [bold]{Line " + el.line + "} " + el.message + " [red]{not in line(s)} [bold]{" + el.definedIn.join(", ") + "}";
+            "  [bold]{Line " + el.line + ", Code " + el.code + "} " + el.message + "\n" +
+            "  [red]{not in line(s)} [bold]{" + el.definedIn.join(", ") + "}\n" +
+            "  Source line: \"" + source[el.line] + "\"";
         }).join("\n") +
         duplicateErrors.map(function (el, idx) {
           return (idx === 0 ? "\n  [yellow]{Duplicated errors}\n": "") +
-            "  [bold]{Line " + el.line + ", Char " + el.character + "} " + el.reason;
+            "  [bold]{Line " + el.line + ", Char " + el.character + ", Code " + el.code + "} " + el.reason + "\n" +
+            "  Source line: \"" + source[el.line] + "\"";
         }).join("\n") + "\n"
       );
     }

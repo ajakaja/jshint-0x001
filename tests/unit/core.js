@@ -1104,8 +1104,7 @@ exports.classIsBlockScoped = function (test) {
     "class B extends C {}", // use in TDZ
     "class C {}",
     "new D();", // not defined
-    "let E = class D {" +
-    "  constructor() { D.static(); }",
+    "let E = class D { constructor() { D.static(); }",
     "  myfunc() { return D; }",
     "};",
     "new D();", // not defined
@@ -1115,7 +1114,7 @@ exports.classIsBlockScoped = function (test) {
     "new F();" // not defined
   ];
 
-  TestRun(test)
+  TestRun(test, "classIsBlockScoped")
     .addError(2, "'A' was used before it was declared, which is illegal for 'class' variables.")
     .addError(4, "'C' was used before it was declared, which is illegal for 'class' variables.")
     .addError(5, "'D' is not defined.")
