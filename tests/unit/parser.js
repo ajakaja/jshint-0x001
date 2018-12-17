@@ -6430,7 +6430,6 @@ exports.invalidClasses = function (test) {
     .test("class a { b", { esnext: true });
 
   // Regression test for GH-2339
-  // FYI this test asserts how JSHint handles badly invalid syntax, which is somewhat annoying to replicate
   TestRun(test)
     .addError(2, "Class properties must be methods. Expected '(' but instead saw ':'.")
     .addError(3, "Expected '(' and instead saw '}'.")
